@@ -23,12 +23,17 @@ export async function middleware(request: NextRequest) {
     secureCookie: !isDevelopmentEnvironment,
   });
 
-  if (!token) {
+  // If no token and trying to access protected routes, redirect to login
+  if (!token && (pathname === '/' || pathname.startsWith('/chat'))) {
     const redirectUrl = encodeURIComponent(request.url);
-
     return NextResponse.redirect(
-      new URL(`/api/auth/guest?redirectUrl=${redirectUrl}`, request.url),
+      new URL(`/login?redirectUrl=${redirectUrl}`, request.url),
     );
+  }
+
+  // If user is authenticated and tries to access auth pages, redirect to home
+  if (token && ['/login', '/register'].includes(pathname)) {
+    return NextResponse.redirect(new URL('/', request.url));
   }
 
   const isGuest = guestRegex.test(token?.email ?? '');

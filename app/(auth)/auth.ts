@@ -6,7 +6,7 @@ import { authConfig } from './auth.config';
 import { DUMMY_PASSWORD } from '@/lib/constants';
 import type { DefaultJWT } from 'next-auth/jwt';
 
-export type UserType = 'guest' | 'regular';
+export type UserType = 'regular';
 
 declare module 'next-auth' {
   interface Session extends DefaultSession {
@@ -62,6 +62,7 @@ export const {
         return { ...user, type: 'regular' };
       },
     }),
+    /* Uncomment this if you want to enable guest mode
     Credentials({
       id: 'guest',
       credentials: {},
@@ -70,6 +71,7 @@ export const {
         return { ...guestUser, type: 'guest' };
       },
     }),
+    */
   ],
   callbacks: {
     async jwt({ token, user }) {
