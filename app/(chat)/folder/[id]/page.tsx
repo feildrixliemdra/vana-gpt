@@ -7,11 +7,14 @@ import { DEFAULT_CHAT_MODEL } from '@/lib/ai/models';
 import type { UIMessage } from 'ai';
 import { DataStreamHandler } from '@/components/data-stream-handler';
 
-export default async function FolderPage({ params }: { params: { id: string } }) {
+export default async function FolderPage(props: { params: Promise<{ id: string }> }) {
   const session = await auth();
   if (!session?.user) return notFound();
   const folders = await getFoldersByUserId(session.user.id);
-  const folder = folders.find((f: any) => f.id === params.id);
+  const params = await props.params;
+  const { id } = params;
+
+  const folder = folders.find((f: any) => f.id === id);
   if (!folder) return notFound();
   const chats = await getChatsByFolderId({ userId: session.user.id, folderId: folder.id });
 

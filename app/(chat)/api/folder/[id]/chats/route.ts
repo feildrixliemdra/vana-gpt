@@ -1,18 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/app/(auth)/auth';
-import { getChatsByFolderIdApi } from '@/lib/db/queries';
+import { getChatsByFolderId } from '@/lib/db/queries';
 
-export async function GET(req: NextRequest) {
+export async function GET(
+  request: NextRequest
+) {
   const session = await auth();
-  if (!session?.user) {
-    return new Response('Unauthorized', { status: 401 });
-  }
-  const { searchParams } = new URL(req.url);
+  if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  const { searchParams } = new URL(request.url);
   const folderId = searchParams.get('folderId');
-  if (!folderId) {
-    return new Response('Folder ID is required', { status: 400 });
+  if (!folderId) return NextResponse.json({ error: 'Folder ID is required' }, { status: 400 });
+
+  try {
+    const chats = await getChatsByFolderId({ userId: session.user.id, folderId });
+    return NextResponse.json(chats);
+  } catch (error) {
+    return NextResponse.json({ error: 'Failed to fetch chats' }, { status: 500 });
   }
-  
-  const chats = await getChatsByFolderIdApi({ userId: session.user.id, folderId });
-  return new Response(JSON.stringify(chats), { status: 200 });
 } 
