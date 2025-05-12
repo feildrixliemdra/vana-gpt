@@ -2,11 +2,17 @@
 
 import { useEffect, useState } from 'react';
 import { ChatItem } from '@/components/sidebar-history-item';
-import { MessageIcon, PlusIcon } from '@/components/icons';
+import { MessageIcon, PlusIcon, MoreHorizontalIcon, TrashIcon } from '@/components/icons';
 import { toast } from 'sonner';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 export function FolderChatListClient({ initialChats, folderId }: { initialChats: any[]; folderId: string }) {
-  const [chats, setChats] = useState(initialChats);
+  const [chats, setChats] = useState(Array.isArray(initialChats) ? initialChats : []);
   const [creating, setCreating] = useState(false);
 
   useEffect(() => {
@@ -45,7 +51,9 @@ export function FolderChatListClient({ initialChats, folderId }: { initialChats:
     if (res.ok) {
       // Refetch chats in this folder
       const updated = await fetch(`/api/folder/${folderId}/chats`).then(r => r.json());
-      setChats(updated);
+      console.log('Fetched chats:', updated);
+
+      setChats(Array.isArray(updated) ? updated : []);
       window.dispatchEvent(new Event('folder-created'));
     }
     setCreating(false);
@@ -58,12 +66,47 @@ export function FolderChatListClient({ initialChats, folderId }: { initialChats:
     toast.success('Chat deleted successfully');
   }
 
+  async function handleRemoveFromFolder(chatId: string) {
+    await fetch('/api/folder', {
+      method: 'DELETE',
+      body: JSON.stringify({ folderId, chatId }),
+      headers: { 'Content-Type': 'application/json' },
+    });
+    // Refetch chats in this folder
+    const updated = await fetch(`/api/folder/${folderId}/chats`).then(r => r.json());
+    setChats(Array.isArray(updated) ? updated : []);
+    window.dispatchEvent(new Event('folder-created'));
+    toast.success('Chat removed from folder');
+  }
+
   return (
     <ul className="space-y-2">
-      {chats.map((chat: any) => (
+      {Array.isArray(chats) && chats.map((chat: any) => (
         <div key={chat.id} className="flex items-center gap-2">
           <MessageIcon />
-          <ChatItem chat={chat} isActive={false} onDelete={handleDeleteChat} />
+          <span className="flex-1 truncate">{chat.title}</span>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="p-1 hover:bg-muted rounded">
+                <MoreHorizontalIcon />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                className="cursor-pointer text-warning"
+                onClick={() => handleRemoveFromFolder(chat.id)}
+              >
+                Remove from Folder
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="cursor-pointer text-destructive focus:bg-destructive/15 focus:text-destructive dark:text-red-500"
+                onClick={() => handleDeleteChat(chat.id)}
+              >
+                <TrashIcon />
+                <span>Delete</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       ))}
     </ul>

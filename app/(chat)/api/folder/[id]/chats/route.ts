@@ -3,13 +3,13 @@ import { auth } from '@/app/(auth)/auth';
 import { getChatsByFolderId } from '@/lib/db/queries';
 
 export async function GET(
-  request: NextRequest
+  request: NextRequest,
+  { params }: { params: { id: string } }
 ) {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const { searchParams } = new URL(request.url);
-  const folderId = searchParams.get('folderId');
+  const folderId = params.id;
   if (!folderId) return NextResponse.json({ error: 'Folder ID is required' }, { status: 400 });
 
   try {
