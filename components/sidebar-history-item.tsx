@@ -27,6 +27,7 @@ import {
 } from './icons';
 import { memo, useState } from 'react';
 import { useChatVisibility } from '@/hooks/use-chat-visibility';
+import { FolderOutput } from 'lucide-react';
 
 const PureChatItem = ({
   chat,
@@ -124,10 +125,12 @@ const PureChatItem = ({
               onClick={() => handleRemoveFromFolder(chat.folderId as string)}
               disabled={assigning}
             >
+              <FolderOutput />
               Remove from Folder
             </DropdownMenuItem>
           )}
-          <DropdownMenuSub>
+          {/* share chat */}
+          {/* <DropdownMenuSub>
             <DropdownMenuSubTrigger className="cursor-pointer">
               <ShareIcon />
               <span>Share</span>
@@ -162,14 +165,14 @@ const PureChatItem = ({
                 </DropdownMenuItem>
               </DropdownMenuSubContent>
             </DropdownMenuPortal>
-          </DropdownMenuSub>
+          </DropdownMenuSub> */}
 
           <DropdownMenuItem
             className="cursor-pointer text-destructive focus:bg-destructive/15 focus:text-destructive dark:text-red-500"
             onSelect={() => onDelete?.(chat.id)}
           >
             <TrashIcon />
-            <span>Delete</span>
+            <span>Delete Chat</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
