@@ -39,7 +39,7 @@ export default async function FolderPage({ params }: { params: { id: string } })
       <DataStreamHandler id={newChatId} />
       <div className="w-full md:max-w-3xl mx-auto py-8">
         <h1 className="text-3xl font-bold mb-4">{folder.name}</h1>
-        <div className="w-full bg-muted rounded-lg p-4">
+        <div className="w-full bg-sidebar rounded-lg p-4">
           <h2 className="text-lg font-semibold mb-2">Chats in this project</h2>
           {chats.length === 0 ? (
             <div className="text-muted-foreground">No chats in this folder.</div>

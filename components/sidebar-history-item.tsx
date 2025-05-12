@@ -77,7 +77,7 @@ const PureChatItem = ({
 
   return (
     <SidebarMenuItem className='flex flex-row justify-between w-full group/menu-item'>
-      <SidebarMenuButton asChild isActive={isActive} className='hover:bg-foreground hover:text-card'>
+      <SidebarMenuButton asChild isActive={isActive} className=''>
         <Link href={`/chat/${chat.id}`} onClick={() => setOpenMobile?.(false)}>
           <span>{chat.title}</span>
         </Link>
