@@ -69,14 +69,16 @@ function PureMultimodalInput({
   const adjustHeight = () => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = `${textareaRef.current.scrollHeight + 2}px`;
+      const maxHeight = 300; // Maximum height of 300px
+      const contentHeight = textareaRef.current.scrollHeight + 2;
+      textareaRef.current.style.height = `${Math.min(contentHeight, maxHeight)}px`;
     }
   };
 
   const resetHeight = () => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = '98px';
+      textareaRef.current.style.height = '100px'; // Start with a smaller height
     }
   };
 
@@ -269,10 +271,10 @@ function PureMultimodalInput({
         value={input}
         onChange={handleInput}
         className={cx(
-          'min-h-[24px] max-h-[calc(75dvh)] overflow-hidden resize-none rounded-2xl !text-base bg-muted pb-10 dark:border-zinc-700',
+          'min-h-[44px] max-h-[300px] overflow-y-auto resize-none rounded-2xl !text-base bg-muted pb-10 dark:border-zinc-700',
           className,
         )}
-        rows={2}
+        rows={1}
         autoFocus
         onKeyDown={(event) => {
           if (
