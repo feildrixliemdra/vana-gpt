@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ChatItem } from '@/components/sidebar-history-item';
 import { MessageIcon, PlusIcon, MoreHorizontalIcon, TrashIcon } from '@/components/icons';
 import { toast } from 'sonner';
 import {
@@ -14,16 +13,34 @@ import {
 export function FolderChatListClient({ initialChats, folderId }: { initialChats: any[]; folderId: string }) {
   const [chats, setChats] = useState(Array.isArray(initialChats) ? initialChats : []);
   const [creating, setCreating] = useState(false);
+  const [folderName, setFolderName] = useState<string | null>(null);
 
   useEffect(() => {
+    async function fetchFolderName() {
+      try {
+        const res = await fetch(`/api/folder/${folderId}`);
+        if (res.ok) {
+          const data = await res.json();
+          setFolderName(data?.name || null);
+        }
+      } catch (e) {
+        setFolderName(null);
+      }
+    }
+    fetchFolderName();
     function onFolderCreated() {
       fetch(`/api/folder/${folderId}/chats`)
         .then(res => res.json())
         .then(setChats);
     }
+    function onFolderRenamed() {
+      fetchFolderName();
+    }
     window.addEventListener('folder-created', onFolderCreated);
+    window.addEventListener('folder-renamed', onFolderRenamed);
     return () => {
       window.removeEventListener('folder-created', onFolderCreated);
+      window.removeEventListener('folder-renamed', onFolderRenamed);
     };
   }, [folderId]);
 

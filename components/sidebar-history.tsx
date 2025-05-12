@@ -212,6 +212,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
       setRenamingFolder(null);
       setNewFolderName('');
       toast.success('Folder renamed successfully');
+      window.dispatchEvent(new Event('folder-renamed'));
     } catch (error) {
       toast.error('Failed to rename folder');
     }
@@ -315,22 +316,32 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
                     {openFolders[f.id] ? <FolderOpen size={16} /> : <Folder size={16} />}
                   </div>
                   {renamingFolder === f.id ? (
-                    <input
-                      type="text"
-                      value={newFolderName}
-                      onChange={(e) => setNewFolderName(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          handleRenameFolder(f.id, newFolderName);
-                        } else if (e.key === 'Escape') {
-                          setRenamingFolder(null);
-                          setNewFolderName('');
-                        }
-                      }}
-                      onClick={(e) => e.stopPropagation()}
-                      className="flex-1 bg-transparent border-none outline-none"
-                      autoFocus
-                    />
+                    <AlertDialog open={true} onOpenChange={(open) => { if (!open) { setRenamingFolder(null); setNewFolderName(''); } }}>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Rename Folder</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Enter a new name for the folder.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <input
+                          type="text"
+                          value={newFolderName}
+                          onChange={(e) => setNewFolderName(e.target.value)}
+                          className="w-full border rounded px-2 py-1 mt-2"
+                          autoFocus
+                        />
+                        <AlertDialogFooter>
+                          <AlertDialogCancel onClick={() => { setRenamingFolder(null); setNewFolderName(''); }}>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => handleRenameFolder(f.id, newFolderName)}
+                            className="bg-primary text-primary-foreground hover:bg-primary/90"
+                          >
+                            Save
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   ) : (
                     <span 
                       className="flex-1 truncate cursor-pointer hover:underline"
