@@ -9,7 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-
+import { FolderOutput } from 'lucide-react';
 export function FolderChatListClient({ initialChats, folderId }: { initialChats: any[]; folderId: string }) {
   const [chats, setChats] = useState(Array.isArray(initialChats) ? initialChats : []);
   const [creating, setCreating] = useState(false);
@@ -102,7 +102,7 @@ export function FolderChatListClient({ initialChats, folderId }: { initialChats:
         <div key={chat.id} className="flex items-center gap-2">
           <MessageIcon />
           <span className="flex-1 truncate">{chat.title}</span>
-          <DropdownMenu>
+          <DropdownMenu >
             <DropdownMenuTrigger asChild>
               <button className="p-1 hover:bg-muted rounded">
                 <MoreHorizontalIcon />
@@ -113,7 +113,7 @@ export function FolderChatListClient({ initialChats, folderId }: { initialChats:
                 className="cursor-pointer text-warning"
                 onClick={() => handleRemoveFromFolder(chat.id)}
               >
-                Remove from Folder
+               <FolderOutput /> Remove from Folder
               </DropdownMenuItem>
               <DropdownMenuItem
                 className="cursor-pointer text-destructive focus:bg-destructive/15 focus:text-destructive dark:text-red-500"

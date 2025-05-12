@@ -3,7 +3,7 @@
 import type { User } from 'next-auth';
 import { useRouter } from 'next/navigation';
 
-import { PlusIcon } from '@/components/icons';
+import { MessageIcon, PlusIcon } from '@/components/icons';
 import { SidebarHistory } from '@/components/sidebar-history';
 import { SidebarUserNav } from '@/components/sidebar-user-nav';
 import { Button } from '@/components/ui/button';
@@ -19,6 +19,7 @@ import Link from 'next/link';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu';
 import { useState } from 'react';
+import { FolderIcon, FolderPlus } from 'lucide-react';
 
 export function AppSidebar({ user }: { user: User | undefined }) {
   const router = useRouter();
@@ -68,20 +69,22 @@ export function AppSidebar({ user }: { user: User | undefined }) {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem
+                className='cursor-pointer'
                   onClick={() => {
                     setOpenMobile(false);
                     router.push('/');
                     router.refresh();
                   }}
                 >
-                  New Chat
+                 <MessageIcon/> New Chat
                 </DropdownMenuItem>
                 <DropdownMenuItem
+                className='cursor-pointer'
                   onClick={() => {
                     setShowFolderPrompt(true);
                   }}
                 >
-                  New Folder
+                  <FolderPlus /> New Folder
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
