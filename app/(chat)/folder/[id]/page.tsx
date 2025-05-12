@@ -3,7 +3,6 @@ import { getFoldersByUserId, getChatsByFolderId } from '@/lib/db/queries';
 import { auth } from '@/app/(auth)/auth';
 import { FolderChatListClient } from '@/components/folder-chat-list-client';
 import { Chat } from '@/components/chat';
-import { cookies } from 'next/headers';
 import { DEFAULT_CHAT_MODEL } from '@/lib/ai/models';
 import type { UIMessage } from 'ai';
 import { DataStreamHandler } from '@/components/data-stream-handler';

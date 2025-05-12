@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { ChatItem } from '@/components/sidebar-history-item';
 import { MessageIcon, PlusIcon } from '@/components/icons';
+import { toast } from 'sonner';
 
 export function FolderChatListClient({ initialChats, folderId }: { initialChats: any[]; folderId: string }) {
   const [chats, setChats] = useState(initialChats);
@@ -54,6 +55,7 @@ export function FolderChatListClient({ initialChats, folderId }: { initialChats:
     await fetch(`/api/chat?id=${chatId}`, { method: 'DELETE' });
     setChats((prev) => prev.filter((chat) => chat.id !== chatId));
     window.dispatchEvent(new Event('folder-created'));
+    toast.success('Chat deleted successfully');
   }
 
   return (

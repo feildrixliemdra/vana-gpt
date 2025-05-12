@@ -34,6 +34,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Folder } from 'lucide-react';
 
 
 type GroupedChats = {
@@ -299,13 +300,13 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
             {(showAllFolders ? folders : folders.slice(0, FOLDER_DISPLAY_LIMIT)).map((f: any) => (
               <div
                 key={f.id}
-                className={`flex flex-row items-center gap-2 px-2 py-1 rounded cursor-pointer ${selectedFolderId === f.id ? 'bg-muted' : ''}`}
+                className={`flex flex-row items-center gap-2 px-2 py-1 rounded cursor-pointer ${selectedFolderId === f.id ? 'bg-muted font-semibold' : ''}`}
                 onClick={() => {
                   setSelectedFolderId(f.id);
                   router.push(`/folder/${f.id}`);
                 }}
               >
-                <FileIcon size={16} />
+                <Folder size={16} />
                 {renamingFolder === f.id ? (
                   <input
                     type="text"
