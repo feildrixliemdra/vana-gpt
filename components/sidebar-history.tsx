@@ -1,7 +1,7 @@
 'use client';
 
 import { isToday, isYesterday, subMonths, subWeeks } from 'date-fns';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, usePathname } from 'next/navigation';
 import type { User } from 'next-auth';
 import { useState, useEffect, MouseEvent } from 'react';
 import { toast } from 'sonner';
@@ -107,6 +107,8 @@ const FOLDER_DISPLAY_LIMIT = 5;
 export function SidebarHistory({ user }: { user: User | undefined }) {
   const { setOpenMobile } = useSidebar();
   const { id } = useParams();
+  const router = useRouter();
+  const pathname = usePathname();
 
   const {
     data: paginatedChatHistories,
@@ -118,7 +120,6 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
     fallbackData: [],
   });
 
-  const router = useRouter();
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showAllFolders, setShowAllFolders] = useState(false);
@@ -234,6 +235,11 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
       setShowDeleteFolderDialog(false);
       setDeleteFolderId(null);
       toast.success('Folder deleted successfully');
+      window.dispatchEvent(new Event('folder-created'));
+      // Redirect if currently on the deleted folder page
+      if (pathname === `/folder/${deleteFolderId}`) {
+        router.push('/');
+      }
     } catch (error) {
       toast.error('Failed to delete folder');
     }

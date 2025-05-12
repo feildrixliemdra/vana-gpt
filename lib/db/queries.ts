@@ -545,7 +545,12 @@ export async function updateFolderName({ id, userId, name, updatedAt }: { id: st
 
 export async function deleteFolder({ id, userId }: { id: string, userId: string }) {
   try {
-    await db.delete(folder).where(and(eq(folder.id, id), eq(folder.userId, userId)));
+    await db.transaction(async (trx) => {
+      // Unassign all chats from this folder (do not delete chats)
+      await trx.update(chat).set({ folderId: null }).where(and(eq(chat.folderId, id), eq(chat.userId, userId)));
+      // Now delete the folder
+      await trx.delete(folder).where(and(eq(folder.id, id), eq(folder.userId, userId)));
+    });
     return { success: true };
   } catch (error) {
     console.error('Failed to delete folder in database');
