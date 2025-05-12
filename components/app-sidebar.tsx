@@ -17,10 +17,28 @@ import {
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu';
+import { useState } from 'react';
 
 export function AppSidebar({ user }: { user: User | undefined }) {
   const router = useRouter();
   const { setOpenMobile } = useSidebar();
+  const [showFolderPrompt, setShowFolderPrompt] = useState(false);
+  const [newFolderName, setNewFolderName] = useState('');
+
+  async function handleCreateFolder() {
+    if (!newFolderName) return;
+    await fetch('/api/folder', {
+      method: 'POST',
+      body: JSON.stringify({ name: newFolderName }),
+      headers: { 'Content-Type': 'application/json' },
+    });
+    setNewFolderName('');
+    setShowFolderPrompt(false);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('folder-created'));
+    }
+  }
 
   return (
     <Sidebar className="group-data-[side=left]:border-r-0">
@@ -38,24 +56,55 @@ export function AppSidebar({ user }: { user: User | undefined }) {
                 VanaGPT
               </span>
             </Link>
-            <Tooltip>
-              <TooltipTrigger asChild>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
                   type="button"
                   className="p-2 h-fit"
+                >
+                  <PlusIcon />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
                   onClick={() => {
                     setOpenMobile(false);
                     router.push('/');
                     router.refresh();
                   }}
                 >
-                  <PlusIcon />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent align="end">New Chat</TooltipContent>
-            </Tooltip>
+                  New Chat
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    setShowFolderPrompt(true);
+                  }}
+                >
+                  New Folder
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
+          {showFolderPrompt && (
+            <div className="absolute left-0 right-0 top-16 bg-background p-4 shadow-lg z-50 flex flex-col gap-2 border rounded-md">
+              <input
+                className="border rounded px-2 py-1"
+                placeholder="New folder name"
+                value={newFolderName}
+                onChange={e => setNewFolderName(e.target.value)}
+                autoFocus
+              />
+              <div className="flex flex-row gap-2 justify-end">
+                <Button size="sm" variant="outline" onClick={() => setShowFolderPrompt(false)}>
+                  Cancel
+                </Button>
+                <Button size="sm" onClick={handleCreateFolder}>
+                  Create
+                </Button>
+              </div>
+            </div>
+          )}
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>

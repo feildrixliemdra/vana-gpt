@@ -29,6 +29,7 @@ export const chat = pgTable('Chat', {
   visibility: varchar('visibility', { enum: ['public', 'private'] })
     .notNull()
     .default('private'),
+  folderId: uuid('folderId').references(() => folder.id),
 });
 
 export type Chat = InferSelectModel<typeof chat>;
@@ -168,3 +169,13 @@ export const stream = pgTable(
 );
 
 export type Stream = InferSelectModel<typeof stream>;
+
+export const folder = pgTable('Folder', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  userId: uuid('userId').notNull().references(() => user.id),
+  name: varchar('name', { length: 255 }).notNull(),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+  updatedAt: timestamp('updatedAt').notNull().defaultNow(),
+});
+
+export type Folder = InferSelectModel<typeof folder>;

@@ -27,6 +27,7 @@ import {
   type DBMessage,
   type Chat,
   stream,
+  folder,
 } from './schema';
 import type { ArtifactKind } from '@/components/artifact';
 import { generateUUID } from '../utils';
@@ -81,11 +82,13 @@ export async function saveChat({
   userId,
   title,
   visibility,
+  folderId,
 }: {
   id: string;
   userId: string;
   title: string;
   visibility: VisibilityType;
+  folderId?: string;
 }) {
   try {
     return await db.insert(chat).values({
@@ -94,6 +97,7 @@ export async function saveChat({
       userId,
       title,
       visibility,
+      folderId,
     });
   } catch (error) {
     console.error('Failed to save chat in database');
@@ -506,6 +510,89 @@ export async function getStreamIdsByChatId({ chatId }: { chatId: string }) {
     return streamIds.map(({ id }) => id);
   } catch (error) {
     console.error('Failed to get stream ids by chat id from database');
+    throw error;
+  }
+}
+
+export async function getFoldersByUserId(userId: string) {
+  try {
+    return await db.select().from(folder).where(eq(folder.userId, userId));
+  } catch (error) {
+    console.error('Failed to get folders by user id from database');
+    throw error;
+  }
+}
+
+export async function createFolder({ id, userId, name, createdAt, updatedAt }: { id: string, userId: string, name: string, createdAt: Date, updatedAt: Date }) {
+  try {
+    await db.insert(folder).values({ id, userId, name, createdAt, updatedAt });
+    return { id, userId, name, createdAt, updatedAt };
+  } catch (error) {
+    console.error('Failed to create folder in database');
+    throw error;
+  }
+}
+
+export async function updateFolderName({ id, userId, name, updatedAt }: { id: string, userId: string, name: string, updatedAt: Date }) {
+  try {
+    await db.update(folder).set({ name, updatedAt }).where(and(eq(folder.id, id), eq(folder.userId, userId)));
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to update folder name in database');
+    throw error;
+  }
+}
+
+export async function deleteFolder({ id, userId }: { id: string, userId: string }) {
+  try {
+    await db.delete(folder).where(and(eq(folder.id, id), eq(folder.userId, userId)));
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to delete folder in database');
+    throw error;
+  }
+}
+
+export async function addChatToFolder({ folderId, chatId, userId }: { folderId: string, chatId: string, userId: string }) {
+  try {
+    // Check ownership
+    const chatExists = await db.select().from(chat).where(and(eq(chat.id, chatId), eq(chat.userId, userId)));
+    if (!chatExists.length) throw new Error('Not found or unauthorized');
+    await db.update(chat).set({ folderId }).where(eq(chat.id, chatId));
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to add chat to folder in database');
+    throw error;
+  }
+}
+
+export async function removeChatFromFolder({ chatId, userId }: { chatId: string, userId: string }) {
+  try {
+    // Check ownership
+    const chatExists = await db.select().from(chat).where(and(eq(chat.id, chatId), eq(chat.userId, userId)));
+    if (!chatExists.length) throw new Error('Not found or unauthorized');
+    await db.update(chat).set({ folderId: null }).where(eq(chat.id, chatId));
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to remove chat from folder in database');
+    throw error;
+  }
+}
+
+export async function getChatsByFolderId({ userId, folderId }: { userId: string, folderId: string }) {
+  try {
+    return await db.select().from(chat).where(and(eq(chat.userId, userId), eq(chat.folderId, folderId)));
+  } catch (error) {
+    console.error('Failed to get chats by folder id from database');
+    throw error;
+  }
+}
+
+export async function getChatsByFolderIdApi({ userId, folderId }: { userId: string, folderId: string }) {
+  try {
+    return await db.select().from(chat).where(and(eq(chat.userId, userId), eq(chat.folderId, folderId)));
+  } catch (error) {
+    console.error('Failed to get chats by folder id from database (API)');
     throw error;
   }
 }
