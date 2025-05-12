@@ -34,7 +34,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Folder, FolderOpen } from 'lucide-react';
+import { Folder, FolderOpen, SquarePen, TrashIcon } from 'lucide-react';
 
 
 type GroupedChats = {
@@ -368,7 +368,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
                           setNewFolderName(f.name);
                         }}
                       >
-                        Rename
+                       <SquarePen /> Rename
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         className="text-destructive focus:bg-destructive/15 focus:text-destructive cursor-pointer"
@@ -378,7 +378,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
                           setShowDeleteFolderDialog(true);
                         }}
                       >
-                        Delete
+                        <TrashIcon /> Delete
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
