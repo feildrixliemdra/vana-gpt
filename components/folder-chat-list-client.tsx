@@ -59,10 +59,10 @@ export function FolderChatListClient({ initialChats, folderId }: { initialChats:
   return (
     <ul className="space-y-2">
       {chats.map((chat: any) => (
-        <li key={chat.id} className="flex items-center gap-2">
+        <div key={chat.id} className="flex items-center gap-2">
           <MessageIcon />
           <ChatItem chat={chat} isActive={false} onDelete={handleDeleteChat} />
-        </li>
+        </div>
       ))}
     </ul>
   );

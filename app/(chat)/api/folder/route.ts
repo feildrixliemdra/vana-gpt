@@ -44,8 +44,12 @@ export async function PATCH(req: NextRequest) {
   if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   const { id, name } = await req.json();
   if (!id || !name) return NextResponse.json({ error: 'ID and name are required' }, { status: 400 });
-  await updateFolderName({ id, userId: session.user.id, name, updatedAt: new Date() });
-  return NextResponse.json({ success: true });
+  try {
+    await updateFolderName({ id, name, userId: session.user.id, updatedAt: new Date() });
+    return NextResponse.json({ success: true });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message || 'Failed to rename folder' }, { status: 404 });
+  }
 }
 
 // Delete folder

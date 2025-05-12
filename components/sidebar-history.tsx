@@ -3,7 +3,7 @@
 import { isToday, isYesterday, subMonths, subWeeks } from 'date-fns';
 import { useParams, useRouter } from 'next/navigation';
 import type { User } from 'next-auth';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, MouseEvent } from 'react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import {
@@ -26,8 +26,15 @@ import type { Chat } from '@/lib/db/schema';
 import { fetcher } from '@/lib/utils';
 import { ChatItem } from './sidebar-history-item';
 import useSWRInfinite from 'swr/infinite';
-import { LoaderIcon, FileIcon } from './icons';
+import { LoaderIcon, FileIcon, MoreHorizontalIcon } from './icons';
 import useSWR from 'swr';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+
 
 type GroupedChats = {
   today: Chat[];
@@ -114,6 +121,10 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showAllFolders, setShowAllFolders] = useState(false);
+  const [renamingFolder, setRenamingFolder] = useState<string | null>(null);
+  const [newFolderName, setNewFolderName] = useState('');
+  const [deleteFolderId, setDeleteFolderId] = useState<string | null>(null);
+  const [showDeleteFolderDialog, setShowDeleteFolderDialog] = useState(false);
 
   const hasReachedEnd = paginatedChatHistories
     ? paginatedChatHistories.some((page) => page.hasMore === false)
@@ -185,6 +196,46 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
     };
   }, [mutateFolders, mutate]);
 
+  const handleRenameFolder = async (folderId: string, newName: string) => {
+    try {
+      const res = await fetch('/api/folder', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: folderId, name: newName }),
+      });
+      
+      if (!res.ok) throw new Error('Failed to rename folder');
+      
+      await mutateFolders();
+      setRenamingFolder(null);
+      setNewFolderName('');
+      toast.success('Folder renamed successfully');
+    } catch (error) {
+      toast.error('Failed to rename folder');
+    }
+  };
+
+  const handleDeleteFolder = async () => {
+    if (!deleteFolderId) return;
+    
+    try {
+      const res = await fetch('/api/folder', {
+        method: 'DELETE',
+        body: JSON.stringify({ id: deleteFolderId }),
+        headers: { 'Content-Type': 'application/json' },
+      });
+      
+      if (!res.ok) throw new Error('Failed to delete folder');
+      
+      await mutateFolders();
+      setShowDeleteFolderDialog(false);
+      setDeleteFolderId(null);
+      toast.success('Folder deleted successfully');
+    } catch (error) {
+      toast.error('Failed to delete folder');
+    }
+  };
+
   if (!user) {
     return (
       <SidebarGroup>
@@ -255,21 +306,55 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
                 }}
               >
                 <FileIcon size={16} />
-                <span className="flex-1 truncate">{f.name}</span>
-                <button
-                  className="text-xs text-red-500"
-                  onClick={async (e) => {
-                    e.stopPropagation();
-                    await fetch('/api/folder', {
-                      method: 'DELETE',
-                      body: JSON.stringify({ id: f.id }),
-                      headers: { 'Content-Type': 'application/json' },
-                    });
-                    mutateFolders();
-                  }}
-                >
-                  Delete
-                </button>
+                {renamingFolder === f.id ? (
+                  <input
+                    type="text"
+                    value={newFolderName}
+                    onChange={(e) => setNewFolderName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        handleRenameFolder(f.id, newFolderName);
+                      } else if (e.key === 'Escape') {
+                        setRenamingFolder(null);
+                        setNewFolderName('');
+                      }
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                    className="flex-1 bg-transparent border-none outline-none"
+                    autoFocus
+                  />
+                ) : (
+                  <span className="flex-1 truncate">{f.name}</span>
+                )}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild onClick={(e: MouseEvent) => e.stopPropagation()}>
+                    <button className="p-1 hover:bg-muted rounded">
+                      <MoreHorizontalIcon size={16} />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem
+                      className="cursor-pointer"
+                      onClick={(e: MouseEvent) => {
+                        e.stopPropagation();
+                        setRenamingFolder(f.id);
+                        setNewFolderName(f.name);
+                      }}
+                    >
+                      Rename
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      className="text-destructive focus:bg-destructive/15 focus:text-destructive cursor-pointer"
+                      onClick={(e: MouseEvent) => {
+                        e.stopPropagation();
+                        setDeleteFolderId(f.id);
+                        setShowDeleteFolderDialog(true);
+                      }}
+                    >
+                      Delete
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             ))}
             {folders.length > FOLDER_DISPLAY_LIMIT && (
@@ -282,6 +367,33 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
             )}
           </div>
         )}
+
+        {/* Delete Folder Confirmation Dialog */}
+        <AlertDialog open={showDeleteFolderDialog} onOpenChange={setShowDeleteFolderDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Folder</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete this folder? This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => {
+                setShowDeleteFolderDialog(false);
+                setDeleteFolderId(null);
+              }}>
+                Cancel
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDeleteFolder}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
         {/* Chats not in folders, grouped by date as before */}
         <SidebarMenu>
           {(() => {
