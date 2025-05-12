@@ -29,9 +29,9 @@ export function CodeBlock({
 
   if (!inline) {
     return (
-      <div className="relative bg-[#18181b] rounded-lg my-4 overflow-x-auto">
+      <div className="relative bg-[#18181b] rounded-lg my-4 overflow-x-auto w-full">
         <button
-          className="absolute top-2 right-2 p-1 bg-slate-50 rounded hover:bg-slate-200 text-xs flex items-center gap-1"
+          className="absolute top-2 right-2 p-1 bg-slate-50 rounded hover:bg-slate-200 text-xs text-black flex items-center gap-1 z-10"
           onClick={handleCopy}
           aria-label="Copy code"
         >
@@ -40,7 +40,7 @@ export function CodeBlock({
         </button>
         <Highlight code={code} language={match?.[1] || ''} theme={themes.dracula}>
           {({ className, style, tokens, getLineProps, getTokenProps }: any) => (
-            <pre className={className + ' p-4 text-sm'} style={style}>
+            <pre className={className + ' p-4 text-sm w-full'} style={style}>
               {tokens.map((line: any, i: number) => (
                 <div key={i} {...getLineProps({ line, key: i })}>
                   {line.map((token: any, key: number) => (
