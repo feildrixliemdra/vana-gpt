@@ -4,12 +4,13 @@ import { getChatsByFolderId } from '@/lib/db/queries';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const folderId = params.id;
+  const param = await params;
+  const folderId = param.id;
   if (!folderId) return NextResponse.json({ error: 'Folder ID is required' }, { status: 400 });
 
   try {
