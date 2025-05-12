@@ -1,4 +1,7 @@
 'use client';
+import React from 'react';
+import {Highlight, themes} from 'prism-react-renderer';
+import { Copy } from 'lucide-react';
 
 interface CodeBlockProps {
   node: any;
@@ -14,15 +17,40 @@ export function CodeBlock({
   children,
   ...props
 }: CodeBlockProps) {
+  const [copied, setCopied] = React.useState(false);
+  const match = /language-(\w+)/.exec(className || '');
+  const code = String(children).replace(/\n$/, '');
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(code);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+
   if (!inline) {
     return (
-      <div className="not-prose flex flex-col">
-        <pre
-          {...props}
-          className={`text-sm w-full overflow-x-auto dark:bg-zinc-900 p-4 border border-zinc-200 dark:border-zinc-700 rounded-xl dark:text-zinc-50 text-zinc-900`}
+      <div className="relative bg-[#18181b] rounded-lg my-4 overflow-x-auto">
+        <button
+          className="absolute top-2 right-2 p-1 bg-slate-50 rounded hover:bg-slate-200 text-xs flex items-center gap-1"
+          onClick={handleCopy}
+          aria-label="Copy code"
         >
-          <code className="whitespace-pre-wrap break-words">{children}</code>
-        </pre>
+          <Copy size={16} />
+          {copied ? 'Copied!' : 'Copy'}
+        </button>
+        <Highlight code={code} language={match?.[1] || ''} theme={themes.dracula}>
+          {({ className, style, tokens, getLineProps, getTokenProps }: any) => (
+            <pre className={className + ' p-4 text-sm'} style={style}>
+              {tokens.map((line: any, i: number) => (
+                <div key={i} {...getLineProps({ line, key: i })}>
+                  {line.map((token: any, key: number) => (
+                    <span key={key} {...getTokenProps({ token, key })} />
+                  ))}
+                </div>
+              ))}
+            </pre>
+          )}
+        </Highlight>
       </div>
     );
   } else {
