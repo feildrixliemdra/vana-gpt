@@ -34,7 +34,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Folder } from 'lucide-react';
+import { Folder, FolderOpen } from 'lucide-react';
 
 
 type GroupedChats = {
@@ -126,6 +126,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
   const [newFolderName, setNewFolderName] = useState('');
   const [deleteFolderId, setDeleteFolderId] = useState<string | null>(null);
   const [showDeleteFolderDialog, setShowDeleteFolderDialog] = useState(false);
+  const [openFolders, setOpenFolders] = useState<Record<string, boolean>>({});
 
   const hasReachedEnd = paginatedChatHistories
     ? paginatedChatHistories.some((page) => page.hasMore === false)
@@ -298,64 +299,107 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
           <div className="flex flex-col gap-1 p-2">
             <div className="text-xs font-semibold text-muted-foreground mb-1">Folders</div>
             {(showAllFolders ? folders : folders.slice(0, FOLDER_DISPLAY_LIMIT)).map((f: any) => (
-              <div
-                key={f.id}
-                className={`flex flex-row items-center gap-2 px-2 py-1 rounded cursor-pointer ${selectedFolderId === f.id ? 'bg-muted font-semibold' : ''}`}
-                onClick={() => {
-                  setSelectedFolderId(f.id);
-                  router.push(`/folder/${f.id}`);
-                }}
-              >
-                <Folder size={16} />
-                {renamingFolder === f.id ? (
-                  <input
-                    type="text"
-                    value={newFolderName}
-                    onChange={(e) => setNewFolderName(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        handleRenameFolder(f.id, newFolderName);
-                      } else if (e.key === 'Escape') {
-                        setRenamingFolder(null);
-                        setNewFolderName('');
-                      }
+              <div key={f.id} className="flex flex-col">
+                <div
+                  className={`flex flex-row items-center gap-2 px-2 py-1 rounded ${selectedFolderId === f.id ? 'bg-muted font-semibold' : ''}`}
+                >
+                  <div 
+                    className="cursor-pointer"
+                    onClick={() => {
+                      setOpenFolders(prev => ({
+                        ...prev,
+                        [f.id]: !prev[f.id]
+                      }));
                     }}
-                    onClick={(e) => e.stopPropagation()}
-                    className="flex-1 bg-transparent border-none outline-none"
-                    autoFocus
-                  />
-                ) : (
-                  <span className="flex-1 truncate">{f.name}</span>
+                  >
+                    {openFolders[f.id] ? <FolderOpen size={16} /> : <Folder size={16} />}
+                  </div>
+                  {renamingFolder === f.id ? (
+                    <input
+                      type="text"
+                      value={newFolderName}
+                      onChange={(e) => setNewFolderName(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          handleRenameFolder(f.id, newFolderName);
+                        } else if (e.key === 'Escape') {
+                          setRenamingFolder(null);
+                          setNewFolderName('');
+                        }
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                      className="flex-1 bg-transparent border-none outline-none"
+                      autoFocus
+                    />
+                  ) : (
+                    <span 
+                      className="flex-1 truncate cursor-pointer hover:underline"
+                      onClick={() => {
+                        setSelectedFolderId(f.id);
+                        router.push(`/folder/${f.id}`);
+                      }}
+                    >
+                      {f.name}
+                    </span>
+                  )}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild onClick={(e: MouseEvent) => e.stopPropagation()}>
+                      <button className="p-1 hover:bg-muted rounded">
+                        <MoreHorizontalIcon size={16} />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem
+                        className="cursor-pointer"
+                        onClick={(e: MouseEvent) => {
+                          e.stopPropagation();
+                          setRenamingFolder(f.id);
+                          setNewFolderName(f.name);
+                        }}
+                      >
+                        Rename
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="text-destructive focus:bg-destructive/15 focus:text-destructive cursor-pointer"
+                        onClick={(e: MouseEvent) => {
+                          e.stopPropagation();
+                          setDeleteFolderId(f.id);
+                          setShowDeleteFolderDialog(true);
+                        }}
+                      >
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+                {openFolders[f.id] && folderIdToChats[f.id] && (
+                  <div className="ml-6 mt-1 space-y-1">
+                    {folderIdToChats[f.id].slice(0, 5).map((chat) => (
+                      <ChatItem
+                        key={chat.id}
+                        chat={chat}
+                        isActive={chat.id === id}
+                        onDelete={(chatId) => {
+                          setDeleteId(chatId);
+                          setShowDeleteDialog(true);
+                        }}
+                        setOpenMobile={setOpenMobile}
+                        folders={folders}
+                      />
+                    ))}
+                    {folderIdToChats[f.id].length > 5 && (
+                      <button
+                        className="text-xs text-muted-foreground px-2 text-left"
+                        onClick={() => {
+                          setSelectedFolderId(f.id);
+                          router.push(`/folder/${f.id}`);
+                        }}
+                      >
+                        View all {folderIdToChats[f.id].length} chats
+                      </button>
+                    )}
+                  </div>
                 )}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild onClick={(e: MouseEvent) => e.stopPropagation()}>
-                    <button className="p-1 hover:bg-muted rounded">
-                      <MoreHorizontalIcon size={16} />
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem
-                      className="cursor-pointer"
-                      onClick={(e: MouseEvent) => {
-                        e.stopPropagation();
-                        setRenamingFolder(f.id);
-                        setNewFolderName(f.name);
-                      }}
-                    >
-                      Rename
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      className="text-destructive focus:bg-destructive/15 focus:text-destructive cursor-pointer"
-                      onClick={(e: MouseEvent) => {
-                        e.stopPropagation();
-                        setDeleteFolderId(f.id);
-                        setShowDeleteFolderDialog(true);
-                      }}
-                    >
-                      Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
               </div>
             ))}
             {folders.length > FOLDER_DISPLAY_LIMIT && (
