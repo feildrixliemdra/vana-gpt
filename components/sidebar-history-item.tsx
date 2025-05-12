@@ -182,5 +182,7 @@ const PureChatItem = ({
 
 export const ChatItem = memo(PureChatItem, (prevProps, nextProps) => {
   if (prevProps.isActive !== nextProps.isActive) return false;
+  // Always re-render if folders prop changes
+  if (prevProps.folders !== nextProps.folders) return false;
   return true;
 });
