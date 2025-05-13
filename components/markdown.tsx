@@ -5,9 +5,43 @@ import remarkGfm from 'remark-gfm';
 import { CodeBlock } from './code-block';
 
 const components: Partial<Components> = {
-  // @ts-expect-error
-  code: CodeBlock,
-  pre: ({ children }) => <>{children}</>,
+  // Handle code specially with better detection for code blocks vs inline code
+  code: ({ className, children, node, ...rest }: any) => {
+    // Better detection of code blocks:
+    // 1. If it has className (language info)
+    // 2. If parent is 'pre' tag
+    // 3. If content has multiple lines
+    const isCodeBlock = 
+      className != null || 
+      (node?.position?.start?.line !== node?.position?.end?.line) ||
+      (node?.parent?.tagName === 'pre');
+    
+    if (!isCodeBlock) {
+      // Inline code (single backtick)
+      return (
+        <code 
+          className="font-mono text-sm bg-zinc-100 dark:bg-zinc-800 py-0.5 px-1.5 rounded-md"
+          style={{ display: 'inline' }}
+          {...rest}
+        >
+          {children}
+        </code>
+      );
+    }
+    
+    // It's a code block, use the CodeBlock component
+    return (
+      <CodeBlock
+        className={className}
+        inline={false}
+        node={node}
+        {...rest}
+      >
+        {children}
+      </CodeBlock>
+    );
+  },
+  pre: ({ children }) => children, // Let the code block handle the pre
   ol: ({ node, children, ...props }) => {
     return (
       <ol className="list-decimal list-outside ml-4" {...props}>

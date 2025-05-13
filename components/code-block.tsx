@@ -27,40 +27,31 @@ export function CodeBlock({
     setTimeout(() => setCopied(false), 1500);
   };
 
-  if (!inline) {
-    return (
-      <div className="relative bg-[#18181b] rounded-lg my-4 overflow-x-auto w-full">
-        <button
-          className="absolute top-2 right-2 p-1 bg-slate-50 rounded hover:bg-slate-200 text-xs text-black flex items-center gap-1 z-10"
-          onClick={handleCopy}
-          aria-label="Copy code"
-        >
-          <Copy size={16} />
-          {copied ? 'Copied!' : 'Copy'}
-        </button>
-        <Highlight code={code} language={match?.[1] || ''} theme={themes.dracula}>
-          {({ className, style, tokens, getLineProps, getTokenProps }: any) => (
-            <pre className={className + ' p-4 text-sm w-full'} style={style}>
-              {tokens.map((line: any, i: number) => (
-                <div key={i} {...getLineProps({ line, key: i })}>
-                  {line.map((token: any, key: number) => (
-                    <span key={key} {...getTokenProps({ token, key })} />
-                  ))}
-                </div>
-              ))}
-            </pre>
-          )}
-        </Highlight>
-      </div>
-    );
-  } else {
-    return (
-      <code
-        className={`${className} text-sm bg-zinc-100 dark:bg-zinc-800 py-0.5 px-1 rounded-md`}
-        {...props}
+  // This component now only handles code blocks (triple backticks)
+  // Inline code is handled directly in markdown.tsx
+  return (
+    <div className="relative bg-[#18181b] rounded-lg my-4 overflow-x-auto w-full">
+      <button
+        className="absolute top-2 right-2 p-1 bg-slate-50 rounded hover:bg-slate-200 text-xs text-black flex items-center gap-1 z-10"
+        onClick={handleCopy}
+        aria-label="Copy code"
       >
-        {children}
-      </code>
-    );
-  }
+        <Copy size={16} />
+        {copied ? 'Copied!' : 'Copy'}
+      </button>
+      <Highlight code={code} language={match?.[1] || ''} theme={themes.dracula}>
+        {({ className, style, tokens, getLineProps, getTokenProps }: any) => (
+          <pre className={className + ' p-4 text-sm w-full'} style={style}>
+            {tokens.map((line: any, i: number) => (
+              <div key={i} {...getLineProps({ line, key: i })}>
+                {line.map((token: any, key: number) => (
+                  <span key={key} {...getTokenProps({ token, key })} />
+                ))}
+              </div>
+            ))}
+          </pre>
+        )}
+      </Highlight>
+    </div>
+  );
 }
