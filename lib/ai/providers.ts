@@ -15,7 +15,12 @@ import {
 
 const MODEL_PROVIDER = process.env.MODEL_PROVIDER || 'openai';
 
-function getProviderConfig(provider: string) {
+type ProviderConfig = {
+  languageModels: Record<string, any>;
+  imageModels?: Record<string, any>;
+};
+
+function getProviderConfig(provider: string): ProviderConfig {
   if (provider === 'deepseek') {
     return {
       languageModels: {
@@ -30,21 +35,21 @@ function getProviderConfig(provider: string) {
       },
     };
   }
-  
+
   // Default to OpenAI
   return {
     languageModels: {
-      'chat-model': openai('gpt-4o'),
-      'chat-model-mini': openai('gpt-4o-mini'),
+      'chat-model': openai('gpt-4.1'),
+      'chat-model-mini': openai('gpt-4.1-mini'),
       'chat-model-reasoning': wrapLanguageModel({
         model: openai('o4-mini'),
         middleware: extractReasoningMiddleware({ tagName: 'think' }),
       }),
-      'title-model': openai('gpt-4o-mini'),
-      'artifact-model': openai('gpt-4o-mini'),
+      'title-model': openai('gpt-4.1-mini'),
+      'artifact-model': openai('gpt-4.1-mini'),
     },
     imageModels: {
-      'image-model': openai.image('gpt-image-1'),
+      'image-model': openai.image('gpt-image-1', {maxImagesPerCall:1}),
     },
   };
 }
@@ -53,6 +58,7 @@ export const myProvider = isTestEnvironment
   ? customProvider({
       languageModels: {
         'chat-model': chatModel,
+        'chat-model-mini': chatModel,
         'chat-model-reasoning': reasoningModel,
         'title-model': titleModel,
         'artifact-model': artifactModel,

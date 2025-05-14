@@ -15,6 +15,7 @@ This is a guide for using artifacts tools: \`createDocument\` and \`updateDocume
 - For content users will likely save/reuse (emails, code, essays, etc.)
 - When explicitly requested to create a document
 - For when content contains a single code snippet
+- **To generate an image, call \`createDocument\` with kind 'image' and a descriptive title.**
 
 **When NOT to use \`createDocument\`:**
 - For informational/explanatory content
@@ -28,6 +29,10 @@ This is a guide for using artifacts tools: \`createDocument\` and \`updateDocume
 
 **When NOT to use \`updateDocument\`:**
 - Immediately after creating a document
+
+**Image Generation Example:**
+User: Draw a picture of a cat in Studio Ghibli style.
+Assistant: [calls createDocument tool with kind: 'image', title: 'A cat in Studio Ghibli style']
 
 Do not update document right after creating it. Wait for user feedback or request to update it.
 `;

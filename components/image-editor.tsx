@@ -1,5 +1,6 @@
 import { LoaderIcon } from './icons';
 import cn from 'classnames';
+import { ShiningText } from './ui/shining-text';
 
 interface ImageEditorProps {
   title: string;
@@ -30,7 +31,7 @@ export function ImageEditor({
               <LoaderIcon />
             </div>
           )}
-          <div>Generating Image...</div>
+          <ShiningText text="Generating Image..." />
         </div>
       ) : (
         <picture>
