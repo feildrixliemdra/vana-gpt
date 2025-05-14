@@ -43,9 +43,9 @@ export function CodeBlock({
         {({ className, style, tokens, getLineProps, getTokenProps }: any) => (
           <pre className={className + ' p-4 text-sm w-full'} style={style}>
             {tokens.map((line: any, i: number) => (
-              <div key={i} {...getLineProps({ line, key: i })}>
+              <div key={i} {...getLineProps({ line })}>
                 {line.map((token: any, key: number) => (
-                  <span key={key} {...getTokenProps({ token, key })} />
+                  <span key={key} {...getTokenProps({ token })} />
                 ))}
               </div>
             ))}
