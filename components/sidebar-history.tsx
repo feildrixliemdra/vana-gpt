@@ -456,6 +456,32 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
           </AlertDialogContent>
         </AlertDialog>
 
+        {/* Delete Chat Confirmation Dialog */}
+        <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Chat</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete this chat? This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => {
+                setShowDeleteDialog(false);
+                setDeleteId(null);
+              }}>
+                Cancel
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDelete}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
         {/* Chats not in folders, grouped by date as before */}
         <SidebarMenu>
           {(() => {
