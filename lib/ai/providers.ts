@@ -4,6 +4,7 @@ import {
   wrapLanguageModel,
 } from 'ai';
 import { deepseek } from '@ai-sdk/deepseek';
+import { openai } from '@ai-sdk/openai';
 import { isTestEnvironment } from '../constants';
 import {
   artifactModel,
@@ -31,7 +32,7 @@ export const myProvider = isTestEnvironment
         'title-model': deepseek('deepseek-chat'),
         'artifact-model': deepseek('deepseek-chat'),
       },
-      // imageModels: {
-      //   'small-model': xai.image('grok-2-image'),
-      // },
+      imageModels: {
+        'gpt-image-1': openai.image('gpt-image-1')
+      },
     });
