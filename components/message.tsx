@@ -19,6 +19,7 @@ import { MessageEditor } from './message-editor';
 import { DocumentPreview } from './document-preview';
 import { MessageReasoning } from './message-reasoning';
 import type { UseChatHelpers } from '@ai-sdk/react';
+import { ShiningText } from './ui/shining-text';
 
 const PurePreviewMessage = ({
   chatId,
@@ -276,7 +277,7 @@ export const ThinkingMessage = () => {
 
         <div className="flex flex-col gap-2 w-full">
           <div className="flex flex-col gap-4 text-muted-foreground">
-            Crafting magic...
+            <ShiningText text="Crafting magic..." />
           </div>
         </div>
       </div>
