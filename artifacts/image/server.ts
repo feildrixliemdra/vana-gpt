@@ -12,6 +12,7 @@ export const imageDocumentHandler = createDocumentHandler<'image'>({
         model: myProvider.imageModel('image-model'),
         providerOptions: {
           "openai": {
+            "imageDetail": "low",
             "quality": "low"
           }
         },
@@ -45,6 +46,7 @@ export const imageDocumentHandler = createDocumentHandler<'image'>({
       prompt: description,
       providerOptions: {
         "openai": {
+          "imageDetail": "low",
           "quality": "low"
         }
       },
