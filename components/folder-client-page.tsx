@@ -58,7 +58,7 @@ export function FolderClientPage({ initialFolderName, initialChats, folderId, se
           {chats.length === 0 ? (
             <div className="text-muted-foreground">No chats in this folder.</div>
           ) : (
-            <FolderChatListClient initialChats={chats} folderId={folderId} />
+            <FolderChatListClient chats={chats} setChats={setChats} folderId={folderId} />
           )}
         </div>
       </div>

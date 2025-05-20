@@ -16,6 +16,7 @@ import {
   getStreamIdsByChatId,
   saveChat,
   saveMessages,
+  updateChatTitle,
 } from '@/lib/db/queries';
 import { generateUUID, getTrailingMessageId } from '@/lib/utils';
 import { generateTitleFromUserMessage } from '../../actions';
@@ -362,4 +363,20 @@ export async function DELETE(request: Request) {
   const deletedChat = await deleteChatById({ id });
 
   return Response.json(deletedChat, { status: 200 });
+}
+
+export async function PATCH(request: Request) {
+  const session = await auth();
+  if (!session?.user) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+  const { id, title } = await request.json();
+  if (!id || !title) return new Response(JSON.stringify({ error: 'ID and title are required' }), { status: 400 });
+  try {
+    const chat = await getChatById({ id });
+    if (!chat) return new Response(JSON.stringify({ error: 'Chat not found' }), { status: 404 });
+    if (chat.userId !== session.user.id) return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403 });
+    await updateChatTitle({ id, userId: session.user.id, title });
+    return new Response(JSON.stringify({ success: true }), { status: 200 });
+  } catch (error: any) {
+    return new Response(JSON.stringify({ error: error.message || 'Failed to rename chat' }), { status: 500 });
+  }
 }

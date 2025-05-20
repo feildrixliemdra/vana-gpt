@@ -10,11 +10,21 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { FolderOutput } from 'lucide-react';
-export function FolderChatListClient({ initialChats, folderId }: { initialChats: any[]; folderId: string }) {
-  const [chats, setChats] = useState(Array.isArray(initialChats) ? initialChats : []);
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from './ui/alert-dialog';
+import { SquarePen } from 'lucide-react';
+
+console.log('FOLDER CHAT LIST CLIENT MOUNTED');
+
+export function FolderChatListClient({ chats, setChats, folderId }: { chats: any[]; setChats: React.Dispatch<React.SetStateAction<any[]>>; folderId: string }) {
   const [creating, setCreating] = useState(false);
   const [folderName, setFolderName] = useState<string | null>(null);
-
+  const [renameDialogChatId, setRenameDialogChatId] = useState<string | null>(null);
+  const [renameInput, setRenameInput] = useState('');
+  const [renaming, setRenaming] = useState(false);
+  const [showRenameDialog, setShowRenameDialog] = useState(false);
+  const [renameChatId, setRenameChatId] = useState<string | null>(null);
+  const [newTitle, setNewTitle] = useState('');
+  
   useEffect(() => {
     async function fetchFolderName() {
       try {
@@ -96,36 +106,98 @@ export function FolderChatListClient({ initialChats, folderId }: { initialChats:
     toast.success('Chat removed from folder');
   }
 
+  const handleRenameChat = async () => {
+    if (!renameChatId) return;
+    setRenaming(true);
+    try {
+      console.log('Renaming chat:', renameChatId, 'to', newTitle);
+      const res = await fetch('/api/chat', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: renameChatId, title: newTitle }),
+      });
+      if (!res.ok) throw new Error('Failed to rename chat');
+      setChats((prev) => prev.map((chat) => chat.id === renameChatId ? { ...chat, title: newTitle } : chat));
+      setShowRenameDialog(false);
+      toast.success('Chat renamed successfully');
+    } catch (e) {
+      toast.error('Failed to rename chat');
+    } finally {
+      setRenaming(false);
+    }
+  };
+
   return (
-    <ul className="space-y-2">
-      {Array.isArray(chats) && chats.map((chat: any) => (
-        <div key={chat.id} className="flex items-center gap-2">
-          <MessageIcon />
-          <span className="flex-1 truncate">{chat.title}</span>
-          <DropdownMenu >
-            <DropdownMenuTrigger asChild>
-              <button className="p-1 hover:bg-muted rounded">
-                <MoreHorizontalIcon />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                className="cursor-pointer text-warning"
-                onClick={() => handleRemoveFromFolder(chat.id)}
-              >
-               <FolderOutput /> Remove from Folder
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className="cursor-pointer text-destructive focus:bg-destructive/15 focus:text-destructive dark:text-red-500"
-                onClick={() => handleDeleteChat(chat.id)}
-              >
-                <TrashIcon />
-                <span>Delete</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      ))}
-    </ul>
+    <>
+      <ul className="space-y-2">
+        {Array.isArray(chats) && chats.map((chat: any) => (
+          <div key={chat.id} className="flex items-center gap-2">
+            <MessageIcon />
+            <span className="flex-1 truncate">{chat.title}</span>
+            <DropdownMenu >
+              <DropdownMenuTrigger asChild>
+                <button className="p-1 hover:bg-muted rounded">
+                  <MoreHorizontalIcon />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onClick={() => {
+                    setShowRenameDialog(true);
+                    setRenameChatId(chat.id);
+                    setNewTitle(chat.title);
+                  }}
+                >
+                  <SquarePen /> Rename
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="cursor-pointer text-warning"
+                  onClick={() => handleRemoveFromFolder(chat.id)}
+                >
+                 <FolderOutput /> Remove from Folder
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="cursor-pointer text-destructive focus:bg-destructive/15 focus:text-destructive dark:text-red-500"
+                  onClick={() => handleDeleteChat(chat.id)}
+                >
+                  <TrashIcon />
+                  <span>Delete</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        ))}
+      </ul>
+      <AlertDialog open={showRenameDialog} onOpenChange={setShowRenameDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Rename Chat</AlertDialogTitle>
+            <AlertDialogDescription>
+              Enter a new title for the chat.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <input
+            type="text"
+            value={newTitle}
+            onChange={e => setNewTitle(e.target.value)}
+            className="w-full border rounded px-2 py-1 mt-2"
+            autoFocus
+            maxLength={80}
+            disabled={renaming}
+          />
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setShowRenameDialog(false)} disabled={renaming}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleRenameChat}
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
+              disabled={renaming || !newTitle.trim() || chats.find(c => c.id === renameChatId)?.title === newTitle}
+            >
+              {renaming ? 'Saving...' : 'Save'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 } 

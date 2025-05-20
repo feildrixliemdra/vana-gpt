@@ -18,16 +18,15 @@ import {
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
 import {
-  CheckCircleFillIcon,
-  GlobeIcon,
-  LockIcon,
   MoreHorizontalIcon,
-  ShareIcon,
   TrashIcon,
 } from './icons';
 import { memo, useState } from 'react';
 import { useChatVisibility } from '@/hooks/use-chat-visibility';
 import { FolderOutput } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from './ui/alert-dialog';
+import { SquarePen } from 'lucide-react';
+import { toast } from 'sonner';
 
 const PureChatItem = ({
   chat,
@@ -36,6 +35,7 @@ const PureChatItem = ({
   setOpenMobile,
   folders,
   currentFolderId,
+  onRename,
 }: {
   chat: Chat;
   isActive: boolean;
@@ -43,12 +43,16 @@ const PureChatItem = ({
   setOpenMobile?: (open: boolean) => void;
   folders?: any[];
   currentFolderId?: string;
+  onRename?: (chatId: string, newTitle: string) => void;
 }) => {
   const { visibilityType, setVisibilityType } = useChatVisibility({
     chatId: chat.id,
     initialVisibilityType: chat.visibility,
   });
   const [assigning, setAssigning] = useState(false);
+  const [showRenameDialog, setShowRenameDialog] = useState(false);
+  const [newTitle, setNewTitle] = useState(chat.title);
+  const [renaming, setRenaming] = useState(false);
 
   async function handleAssignFolder(folderId: string) {
     setAssigning(true);
@@ -73,6 +77,28 @@ const PureChatItem = ({
     setAssigning(false);
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new Event('folder-created'));
+    }
+  }
+
+  async function handleRenameChat() {
+    setRenaming(true);
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: chat.id, title: newTitle }),
+      });
+      if (!res.ok) throw new Error('Failed to rename chat');
+      setShowRenameDialog(false);
+      if (onRename) onRename(chat.id, newTitle);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('chat-renamed'));
+      }
+      toast.success('Chat renamed successfully');
+    } catch (e) {
+      toast.error('Failed to rename chat');
+    } finally {
+      setRenaming(false);
     }
   }
 
@@ -168,6 +194,16 @@ const PureChatItem = ({
           </DropdownMenuSub> */}
 
           <DropdownMenuItem
+            className="cursor-pointer"
+            onClick={() => {
+              setShowRenameDialog(true);
+              setNewTitle(chat.title);
+            }}
+          >
+            <SquarePen /> Rename
+          </DropdownMenuItem>
+
+          <DropdownMenuItem
             className="cursor-pointer text-destructive focus:bg-destructive/15 focus:text-destructive dark:text-red-500"
             onSelect={() => onDelete?.(chat.id)}
           >
@@ -176,6 +212,36 @@ const PureChatItem = ({
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+
+      <AlertDialog open={showRenameDialog} onOpenChange={setShowRenameDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Rename Chat</AlertDialogTitle>
+            <AlertDialogDescription>
+              Enter a new title for the chat.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <input
+            type="text"
+            value={newTitle}
+            onChange={e => setNewTitle(e.target.value)}
+            className="w-full border rounded px-2 py-1 mt-2"
+            autoFocus
+            maxLength={80}
+            disabled={renaming}
+          />
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setShowRenameDialog(false)} disabled={renaming}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleRenameChat}
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
+              disabled={renaming || !newTitle.trim() || newTitle === chat.title}
+            >
+              {renaming ? 'Saving...' : 'Save'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </SidebarMenuItem>
   );
 };
@@ -184,5 +250,7 @@ export const ChatItem = memo(PureChatItem, (prevProps, nextProps) => {
   if (prevProps.isActive !== nextProps.isActive) return false;
   // Always re-render if folders prop changes
   if (prevProps.folders !== nextProps.folders) return false;
+  // Re-render if chat title changes
+  if (prevProps.chat.title !== nextProps.chat.title) return false;
   return true;
 });

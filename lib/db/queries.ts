@@ -625,3 +625,13 @@ export async function getChatsByFolderIdApi({ userId, folderId }: { userId: stri
     throw error;
   }
 }
+
+export async function updateChatTitle({ id, userId, title }: { id: string, userId: string, title: string }) {
+  try {
+    await db.update(chat).set({ title }).where(and(eq(chat.id, id), eq(chat.userId, userId)));
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to update chat title in database');
+    throw error;
+  }
+}
