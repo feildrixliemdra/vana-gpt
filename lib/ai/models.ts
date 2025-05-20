@@ -9,17 +9,17 @@ export interface ChatModel {
 export const chatModels: Array<ChatModel> = [
   {
     id: 'chat-model',
-    name: 'Chat model',
-    description: 'Primary model for all-purpose chat, default using GPT-4o',
+    name: 'GPT-4.1',
+    description: 'Primary model for all-purpose chat.',
   },
   {
     id: 'chat-model-mini',
-    name: 'Chat model mini',
-    description: 'Mini model for all-purpose chat, good for simple tasks with faster response, default using GPT-4o-mini',
+    name: 'GPT-4.1-mini',
+    description: 'Mini model for all-purpose chat, good for simple tasks with faster response.',
   },
   {
     id: 'chat-model-reasoning',
-    name: 'Reasoning model',
-    description: 'Uses advanced reasoning for deep thinking, default using o4-mini',
+    name: 'o4-mini',
+    description: 'Uses advanced reasoning for deep thinking.',
   },
 ];
