@@ -239,6 +239,7 @@ function PureMultimodalInput({
         multiple
         onChange={handleFileChange}
         tabIndex={-1}
+        accept="image/*, application/pdf"
       />
 
       {(attachments.length > 0 || uploadQueue.length > 0) && (
