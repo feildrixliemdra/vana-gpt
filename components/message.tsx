@@ -131,7 +131,11 @@ const PurePreviewMessage = ({
                             message.role === 'user',
                         })}
                       >
-                        <Markdown>{sanitizeText(part.text)}</Markdown>
+                        {message.role === 'assistant' ? (
+                          <Markdown forceTable>{sanitizeText(part.text)}</Markdown>
+                        ) : (
+                          <Markdown>{sanitizeText(part.text)}</Markdown>
+                        )}
                       </div>
                     </div>
                   );
