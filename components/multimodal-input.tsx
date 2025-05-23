@@ -187,6 +187,50 @@ function PureMultimodalInput({
     [setAttachments],
   );
 
+  const handlePaste = useCallback(
+    async (event: React.ClipboardEvent<HTMLTextAreaElement>) => {
+      const items = event.clipboardData.items;
+      if (!items) return;
+      const imageItems = Array.from(items).filter(
+        (item) => item.kind === 'file' && item.type.startsWith('image/')
+      );
+      if (imageItems.length === 0) return;
+      event.preventDefault();
+      // Assign a unique name to each pasted image
+      const timestamp = Date.now();
+      const uniqueNames = imageItems.map((item, idx) => {
+        const file = item.getAsFile();
+        if (file && file.name && file.name !== '') return file.name;
+        return `clipboard-image-${timestamp}-${idx}`;
+      });
+      setUploadQueue((queue) => [
+        ...queue,
+        ...uniqueNames,
+      ]);
+      try {
+        const uploadPromises = imageItems.map((item) => {
+          const file = item.getAsFile();
+          return file ? uploadFile(file) : undefined;
+        });
+        const uploadedAttachments = await Promise.all(uploadPromises);
+        const successfullyUploadedAttachments = uploadedAttachments.filter(
+          (attachment) => attachment !== undefined,
+        );
+        setAttachments((currentAttachments) => [
+          ...currentAttachments,
+          ...successfullyUploadedAttachments,
+        ]);
+      } catch (error) {
+        toast.error('Failed to upload pasted image, please try again!');
+      } finally {
+        setUploadQueue((queue) =>
+          queue.filter((name) => !uniqueNames.includes(name))
+        );
+      }
+    },
+    [setAttachments, uploadFile]
+  );
+
   const { isAtBottom, scrollToBottom } = useScrollToBottom();
 
   useEffect(() => {
@@ -247,8 +291,16 @@ function PureMultimodalInput({
           data-testid="attachments-preview"
           className="flex flex-row gap-2 overflow-x-scroll items-end"
         >
-          {attachments.map((attachment) => (
-            <PreviewAttachment key={attachment.url} attachment={attachment} />
+          {attachments.map((attachment, idx) => (
+            <PreviewAttachment
+              key={attachment.url}
+              attachment={attachment}
+              onDelete={() => {
+                setAttachments((current) =>
+                  current.filter((a, i) => i !== idx)
+                );
+              }}
+            />
           ))}
 
           {uploadQueue.map((filename) => (
@@ -271,6 +323,7 @@ function PureMultimodalInput({
         placeholder="Send a message..."
         value={input}
         onChange={handleInput}
+        onPaste={handlePaste}
         className={cx(
           'min-h-[44px] max-h-[300px] overflow-y-auto resize-none rounded-2xl !text-base bg-muted pb-10 dark:border-zinc-700',
           className,
