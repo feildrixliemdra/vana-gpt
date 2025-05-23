@@ -195,6 +195,21 @@ function extractTableBlock(text: string): { type: 'ascii' | 'kv', block: string 
   return null;
 }
 
+// Helper: render markdown inline (no block elements)
+const InlineMarkdown = ({ children }: { children: string }) => (
+  <ReactMarkdown
+    components={{
+      p: ({ children }) => <>{children}</>,
+      li: ({ children }) => <>{children}</>,
+    }}
+    remarkPlugins={[]}
+    allowedElements={['strong', 'em', 'code', 'span', 'a', 'br', 'text']}
+    unwrapDisallowed={true}
+  >
+    {children}
+  </ReactMarkdown>
+);
+
 function renderTable(table: string[][]) {
   if (!table || table.length === 0) return null;
   const [header, ...rows] = table;
@@ -204,7 +219,9 @@ function renderTable(table: string[][]) {
         <thead>
           <tr>
             {header.map((cell, i) => (
-              <th key={i} className="px-3 py-2 border-b border-zinc-300 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 text-left font-semibold text-sm">{cell}</th>
+              <th key={i} className="px-3 py-2 border-b border-zinc-300 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 text-left font-semibold text-sm">
+                <InlineMarkdown>{cell}</InlineMarkdown>
+              </th>
             ))}
           </tr>
         </thead>
@@ -212,7 +229,9 @@ function renderTable(table: string[][]) {
           {rows.map((row, i) => (
             <tr key={i}>
               {row.map((cell, j) => (
-                <td key={j} className="px-3 py-2 border-b border-zinc-200 dark:border-zinc-700 text-sm">{cell}</td>
+                <td key={j} className="px-3 py-2 border-b border-zinc-200 dark:border-zinc-700 text-sm">
+                  <InlineMarkdown>{cell}</InlineMarkdown>
+                </td>
               ))}
             </tr>
           ))}
@@ -222,43 +241,28 @@ function renderTable(table: string[][]) {
   );
 }
 
-// Helper: find all table-like blocks and split text into segments
-function splitIntoSegments(text: string): Array<{ type: 'ascii' | 'kv' | 'markdown', content: string }> {
+// Helper: find all Markdown table blocks and split text into segments
+function splitIntoSegments(text: string): Array<{ type: 'table' | 'markdown', content: string }> {
   const lines = text.split('\n');
-  const segments: Array<{ type: 'ascii' | 'kv' | 'markdown', content: string }> = [];
+  const segments: Array<{ type: 'table' | 'markdown', content: string }> = [];
   let buffer: string[] = [];
   let i = 0;
   while (i < lines.length) {
-    // ASCII table block
-    if (lines[i].trim().startsWith('|')) {
+    // Markdown table block: at least 2 lines, first line with |, second line is separator
+    if (
+      lines[i].includes('|') &&
+      i + 1 < lines.length &&
+      /^\s*\|?\s*(:?-+:?\s*\|)+\s*$/.test(lines[i + 1])
+    ) {
       if (buffer.length > 0) {
         segments.push({ type: 'markdown', content: buffer.join('\n') });
         buffer = [];
       }
       let start = i;
-      while (i < lines.length && lines[i].trim().startsWith('|')) i++;
-      segments.push({ type: 'ascii', content: lines.slice(start, i).join('\n') });
+      i += 2;
+      while (i < lines.length && lines[i].includes('|')) i++;
+      segments.push({ type: 'table', content: lines.slice(start, i).join('\n') });
       continue;
-    }
-    // Key-value block (at least 2 lines with two or more spaces or a colon)
-    if (lines[i].match(/\S+\s{2,}\S+/) || lines[i].includes(':')) {
-      // Look ahead for at least one more line
-      let start = i;
-      let found = false;
-      let j = i + 1;
-      while (j < lines.length && (lines[j].match(/\S+\s{2,}\S+/) || lines[j].includes(':'))) {
-        found = true;
-        j++;
-      }
-      if (found) {
-        if (buffer.length > 0) {
-          segments.push({ type: 'markdown', content: buffer.join('\n') });
-          buffer = [];
-        }
-        segments.push({ type: 'kv', content: lines.slice(start, j).join('\n') });
-        i = j;
-        continue;
-      }
     }
     buffer.push(lines[i]);
     i++;
@@ -276,12 +280,9 @@ const NonMemoizedMarkdown = ({ children, forceTable }: { children: string, force
     return (
       <>
         {segments.map((seg, idx) => {
-          if (seg.type === 'ascii') {
-            const parsed = parseAsciiTable(seg.content);
-            if (parsed) return <React.Fragment key={idx}>{renderTable(parsed)}</React.Fragment>;
-          } else if (seg.type === 'kv') {
-            const parsed = parseKeyValueBlock(seg.content);
-            if (parsed) return <React.Fragment key={idx}>{renderTable(parsed)}</React.Fragment>;
+          if (seg.type === 'table') {
+            // Let ReactMarkdown handle the table (GFM)
+            return <ReactMarkdown key={idx} remarkPlugins={remarkPlugins} components={components}>{seg.content}</ReactMarkdown>;
           }
           // markdown
           return <ReactMarkdown key={idx} remarkPlugins={remarkPlugins} components={components}>{seg.content}</ReactMarkdown>;

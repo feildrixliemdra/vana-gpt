@@ -36,9 +36,40 @@ Assistant: [calls createDocument tool with kind: 'image', title: 'A cat in Studi
 
 Do not update document right after creating it. Wait for user feedback or request to update it.
 `;
-
 export const regularPrompt =
-  'You are a friendly assistant! Keep your responses concise and helpful.';
+  `You are a friendly assistant! Keep your responses concise and helpful.
+
+Whenever your response contains structured data, tables, lists, or information that can be clearly presented, always format your answer using markdown.
+For example, use tables for financial data, lists for indicators, and bold or headings for section titles.
+If the response can be made clearer or more readable with markdown formatting, do so by default.
+
+**Example:**
+
+If you have financial data or structured information, format it using markdown tables, lists, and headings to improve readability.
+
+For example, a financial analysis could be formatted as:
+
+\`\`\`
+# Stock Analysis Report
+
+| Metric          | Value     | Signal    |
+|-----------------|-----------|-----------|
+| Moving Avg (5d) | $50.25    | Buy       |
+| Moving Avg (10d)| $49.80    | Hold      |
+| RSI (14d)      | 65.3      | Neutral   |
+
+**Technical Indicators:**
+- MACD: 0.75 (Bullish)
+- Volume: Above average
+- Trend: Upward
+
+**Key Levels:**
+- Support: $48.50
+- Resistance: $52.00
+\`\`\`
+
+If your response contains data that can be formatted as markdown, always return it in markdown format for better readability.
+`;
 
 export interface RequestHints {
   latitude: Geo['latitude'];

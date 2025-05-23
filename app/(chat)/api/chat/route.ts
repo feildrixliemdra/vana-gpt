@@ -69,7 +69,8 @@ export async function POST(request: Request) {
   try {
     const json = await request.json();
     requestBody = postRequestBodySchema.parse(json);
-  } catch (_) {
+  } catch (error: any) {
+    console.log('error: ', error);
     return new ChatSDKError('bad_request:api').toResponse();
   }
 
@@ -146,11 +147,15 @@ export async function POST(request: Request) {
     const streamId = generateUUID();
     await createStreamId({ streamId, chatId: id });
 
+    const sysPrompt = systemPrompt({ selectedChatModel, requestHints });
+
+    console.log('system prompt: ', sysPrompt);
+    
     const stream = createDataStream({
       execute: (dataStream) => {
         const result = streamText({
           model: myProvider.languageModel(selectedChatModel),
-          system: systemPrompt({ selectedChatModel, requestHints }),
+          system: sysPrompt,
           messages,
           maxSteps: 5,
           providerOptions: selectedChatModel === 'chat-model-reasoning' ? {
