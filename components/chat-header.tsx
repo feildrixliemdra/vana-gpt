@@ -13,6 +13,8 @@ import { memo } from 'react';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { type VisibilityType, VisibilitySelector } from './visibility-selector';
 import type { Session } from 'next-auth';
+import { ThemeSelector } from './theme-selector';
+import { SettingsIcon } from 'lucide-react';
 
 function PureChatHeader({
   chatId,
@@ -55,13 +57,28 @@ function PureChatHeader({
         </Tooltip>
       )}
 
-      {!isReadonly && (
+      {/* {!isReadonly && (
         <ModelSelector
           session={session}
           selectedModelId={selectedModelId}
           className="order-1 md:order-2"
         />
-      )}
+      )} */}
+
+      <ModelSelector
+        session={session}
+        selectedModelId={selectedModelId}
+        className="order-1 md:order-2"
+      />
+
+      <div className="order-3 md:order-4">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <ThemeSelector />
+          </TooltipTrigger>
+          <TooltipContent>Select Theme</TooltipContent>
+        </Tooltip>
+      </div>
 
       {/* Temporarily hiding visibility selector
       {!isReadonly && (

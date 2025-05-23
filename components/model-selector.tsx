@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils';
 import { CheckCircleFillIcon, ChevronDownIcon } from './icons';
 import { entitlementsByUserType } from '@/lib/ai/entitlements';
 import type { Session } from 'next-auth';
+import { Tooltip, TooltipTrigger, TooltipContent } from './ui/tooltip';
 
 export function ModelSelector({
   session,
@@ -46,22 +47,27 @@ export function ModelSelector({
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
-      <DropdownMenuTrigger
-        asChild
-        className={cn(
-          'w-fit data-[state=open]:bg-accent data-[state=open]:text-accent-foreground',
-          className,
-        )}
-      >
-        <Button
-          data-testid="model-selector"
-          variant="outline"
-          className="md:px-2 md:h-[34px]"
-        >
-          {selectedChatModel?.name}
-          <ChevronDownIcon />
-        </Button>
-      </DropdownMenuTrigger>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <DropdownMenuTrigger
+            asChild
+            className={cn(
+              'w-fit data-[state=open]:bg-accent data-[state=open]:text-accent-foreground',
+              className,
+            )}
+          >
+            <Button
+              data-testid="model-selector"
+              variant="outline"
+              className="md:px-2 md:h-[34px]"
+            >
+              {selectedChatModel?.name}
+              <ChevronDownIcon />
+            </Button>
+          </DropdownMenuTrigger>
+        </TooltipTrigger>
+        <TooltipContent>Select Model</TooltipContent>
+      </Tooltip>
       <DropdownMenuContent align="start" className="min-w-[300px]">
         {availableChatModels.map((chatModel) => {
           const { id } = chatModel;
