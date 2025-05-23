@@ -39,10 +39,10 @@ function getProviderConfig(provider: string): ProviderConfig {
   // Default to OpenAI
   return {
     languageModels: {
-      'chat-model': openai('gpt-4.1'),
-      'chat-model-mini': openai('gpt-4.1-mini'),
+      'chat-model': openai.responses('gpt-4.1'),
+      'chat-model-mini': openai.responses('gpt-4.1-mini'),
       'chat-model-reasoning': wrapLanguageModel({
-        model: openai('o4-mini'),
+        model: openai.responses('o4-mini'),
         middleware: extractReasoningMiddleware({ tagName: 'think' }),
       }),
       'title-model': openai('gpt-4.1-mini'),

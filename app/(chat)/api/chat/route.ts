@@ -37,6 +37,7 @@ import { after } from 'next/server';
 import type { Chat } from '@/lib/db/schema';
 import { differenceInSeconds } from 'date-fns';
 import { ChatSDKError } from '@/lib/errors';
+import { openai } from '@ai-sdk/openai';
 
 export const maxDuration = 60;
 
@@ -152,14 +153,24 @@ export async function POST(request: Request) {
           system: systemPrompt({ selectedChatModel, requestHints }),
           messages,
           maxSteps: 5,
+          providerOptions: selectedChatModel === 'chat-model-reasoning' ? {
+            openai: {
+              reasoningSummary: 'detailed', // 'auto' for condensed or 'detailed' for comprehensive
+            },
+          } : {},
+          // toolChoice:{
+          //   type: 'tool',
+          //   toolName: 'web_search_preview',
+          // },
           experimental_activeTools:
             selectedChatModel === 'chat-model-reasoning'
-              ? []
+              ? ['web_search_preview']
               : [
                   'getWeather',
                   'createDocument',
                   'updateDocument',
                   'requestSuggestions',
+                  'web_search_preview',
                 ],
           experimental_transform: smoothStream({ chunking: 'word' }),
           experimental_generateMessageId: generateUUID,
@@ -170,6 +181,15 @@ export async function POST(request: Request) {
             requestSuggestions: requestSuggestions({
               session,
               dataStream,
+            }),
+            web_search_preview: openai.tools.webSearchPreview({
+              // optional configuration:
+              searchContextSize: 'medium',
+              userLocation: {
+                type: 'approximate',
+                city,
+                region: country,
+              },
             }),
           },
           onFinish: async ({ response }) => {
