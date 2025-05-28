@@ -28,6 +28,8 @@ import {
   type Chat,
   stream,
   folder,
+  userSuggestedAction,
+  type UserSuggestedAction,
 } from './schema';
 import type { ArtifactKind } from '@/components/artifact';
 import { generateUUID } from '../utils';
@@ -633,5 +635,51 @@ export async function updateChatTitle({ id, userId, title }: { id: string, userI
   } catch (error) {
     console.error('Failed to update chat title in database');
     throw error;
+  }
+}
+
+export async function getUserSuggestedActions(userId: string): Promise<UserSuggestedAction[]> {
+  try {
+    return await db.select().from(userSuggestedAction).where(eq(userSuggestedAction.userId, userId)).orderBy(asc(userSuggestedAction.createdAt));
+  } catch (error) {
+    throw new ChatSDKError('bad_request:database', 'Failed to get user suggested actions');
+  }
+}
+
+export async function createUserSuggestedAction({ userId, title, label, action }: { userId: string; title: string; label: string; action: string; }) {
+  // Enforce max 6 actions per user
+  const countResult: { count: number }[] = await db.select({ count: count(userSuggestedAction.id) }).from(userSuggestedAction).where(eq(userSuggestedAction.userId, userId));
+  if ((countResult[0]?.count ?? 0) >= 6) {
+    throw new ChatSDKError('bad_request:database', 'Maximum of 6 suggested actions allowed');
+  }
+  try {
+    return await db.insert(userSuggestedAction).values({ userId, title, label, action, createdAt: new Date(), updatedAt: new Date() }).returning();
+  } catch (error) {
+    throw new ChatSDKError('bad_request:database', 'Failed to create user suggested action');
+  }
+}
+
+export async function updateUserSuggestedAction({ id, userId, title, label, action }: { id: string; userId: string; title: string; label: string; action: string; }) {
+  try {
+    const [updated] = await db.update(userSuggestedAction)
+      .set({ title, label, action, updatedAt: new Date() })
+      .where(and(eq(userSuggestedAction.id, id), eq(userSuggestedAction.userId, userId)))
+      .returning();
+    if (!updated) throw new Error('Not found or not authorized');
+    return updated;
+  } catch (error) {
+    throw new ChatSDKError('bad_request:database', 'Failed to update user suggested action');
+  }
+}
+
+export async function deleteUserSuggestedAction({ id, userId }: { id: string; userId: string; }) {
+  try {
+    const [deleted] = await db.delete(userSuggestedAction)
+      .where(and(eq(userSuggestedAction.id, id), eq(userSuggestedAction.userId, userId)))
+      .returning();
+    if (!deleted) throw new Error('Not found or not authorized');
+    return deleted;
+  } catch (error) {
+    throw new ChatSDKError('bad_request:database', 'Failed to delete user suggested action');
   }
 }

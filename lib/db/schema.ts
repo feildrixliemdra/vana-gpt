@@ -179,3 +179,15 @@ export const folder = pgTable('Folder', {
 });
 
 export type Folder = InferSelectModel<typeof folder>;
+
+export const userSuggestedAction = pgTable('UserSuggestedAction', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  userId: uuid('userId').notNull().references(() => user.id),
+  title: varchar('title', { length: 100 }).notNull(),
+  label: varchar('label', { length: 255 }).notNull(),
+  action: text('action').notNull(),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+  updatedAt: timestamp('updatedAt').notNull().defaultNow(),
+});
+
+export type UserSuggestedAction = InferSelectModel<typeof userSuggestedAction>;
