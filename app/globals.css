@@ -135,6 +135,31 @@
     @apply bg-background text-foreground;
     font-family: var(--font-sans), 'Montserrat', sans-serif;
     }
+
+    * {
+        @apply border-border;
+    }
+
+    body {
+        @apply bg-background text-foreground;
+    }
+
+    table {
+        @apply w-full table-auto border border-border rounded-t-md rounded-b-md overflow-hidden;
+    }
+
+    th {
+        @apply px-4 py-2 text-left font-medium bg-muted/50 border-b border-border;
+    }
+   
+
+    td {
+        @apply px-4 py-2 border-b border-border;
+    }
+
+    tr:hover {
+        @apply bg-muted/30;
+    }
 }
 
 @layer base {
