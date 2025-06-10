@@ -258,7 +258,6 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
 
   // Optimistically update chat title in SWR cache
   const updateChatTitleOptimistically = (chatId: string, newTitle: string) => {
-    console.log('Optimistically updating chat:', chatId, 'to', newTitle);
     mutate((chatHistories) => {
       if (!chatHistories) return chatHistories;
       const updated = chatHistories.map((page) => ({
@@ -267,7 +266,6 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
           chat.id === chatId ? { ...chat, title: newTitle } : chat
         ),
       }));
-      console.log('Updated chatHistories:', updated);
       return updated;
     }, false); // false = do not revalidate yet
   };

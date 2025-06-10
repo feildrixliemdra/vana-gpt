@@ -148,8 +148,6 @@ export async function POST(request: Request) {
     await createStreamId({ streamId, chatId: id });
 
     const sysPrompt = systemPrompt({ selectedChatModel, requestHints });
-
-    console.log('system prompt: ', sysPrompt);
     
     const stream = createDataStream({
       execute: (dataStream) => {

@@ -9,11 +9,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { FolderOutput } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from './ui/alert-dialog';
-import { SquarePen } from 'lucide-react';
+import { SquarePen ,FolderOutput} from 'lucide-react';
 
-console.log('FOLDER CHAT LIST CLIENT MOUNTED');
 
 export function FolderChatListClient({ chats, setChats, folderId }: { chats: any[]; setChats: React.Dispatch<React.SetStateAction<any[]>>; folderId: string }) {
   const [creating, setCreating] = useState(false);
@@ -78,7 +76,6 @@ export function FolderChatListClient({ chats, setChats, folderId }: { chats: any
     if (res.ok) {
       // Refetch chats in this folder
       const updated = await fetch(`/api/folder/${folderId}/chats`).then(r => r.json());
-      console.log('Fetched chats:', updated);
 
       setChats(Array.isArray(updated) ? updated : []);
       window.dispatchEvent(new Event('folder-created'));
@@ -110,7 +107,6 @@ export function FolderChatListClient({ chats, setChats, folderId }: { chats: any
     if (!renameChatId) return;
     setRenaming(true);
     try {
-      console.log('Renaming chat:', renameChatId, 'to', newTitle);
       const res = await fetch('/api/chat', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
